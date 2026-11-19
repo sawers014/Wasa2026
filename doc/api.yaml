@@ -1,325 +1,857 @@
-openapi: 3.0.0
-servers:
-  - url: "http://localhost:3000"
+openapi: 3.0.3
 info:
-  title: Fantastic Coffee (decaffeinated)
-  description: Fantastic Coffee (decaffeinated), the skeleton project for Web and Software architecture course
-  version: 1.0.0
+  title: WASATextPlus API
+  description: 
+    API for WASATextPlus. users can log in, chat, send text/photo/file
+    messages, react, create groups, and upload files with S3 URLs.
+  version: "1.0"
+security:
+  - bearerAuth: [] #security rimane costante con wasatext
 paths:
-  /status:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["General"]
-      operationId: getStatusMessage
-      summary: Get status message for the user about issues / updates
-      description: |-
-        The response contains a status message meant for the user. It might
-        contains information about current technical issues, update messages
-        or general information.
-      responses:
-        "200":
-          description: Status message available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusInfo"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /:
-    get:
-      tags: ["Group 1"]
-      operationId: index
-      summary: Get an index
-      description: |-
-        This is an example of an index API description
-      responses:
-        "200":
-          description: Successful
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /context:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
+  /session:
     post:
-      tags: ["Group 1"]
-      operationId: getContext
-      summary: Another API example
-      description: |-
-        Example description 2
-      responses:
-        "200":
-          description: Request ok
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /name:
-    get:
-      tags: ["Name"]
-      operationId: getName
-      summary: Read the stored name
-      description: |-
-        Returns the name stored in the example table. If no name has been set
-        yet, the server replies with 404.
-      responses:
-        "200":
-          description: Name found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NameInfo"
-        "404":
-          description: No name has been set yet
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    put:
-      tags: ["Name"]
-      operationId: setName
-      summary: Store a name
-      description: |-
-        Stores (or replaces) the name in the example table. The stored name is
-        returned in the response.
+      tags:
+        - login
+      summary: Log in or register
+      description: 
+        if username exists, log in. otherwise create the user.
+        return an id that is the Bearer token.
+      operationId: doLogin
+      security: []
       requestBody:
+        description: User details
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NameInfo"
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        "200":
-          description: Name stored
+        "201":
+          description: Login successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NameInfo"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /authenticated:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["Group 2"]
-      operationId: getAuthenticatedExample
-      summary: Get an endpoint with authentication
-      description: |-
-        Get an endpoint with auth
-      security:
-        - LegacyAuth: []
-        - AppToken: []
-      responses:
-        "200":
-          description: Logout successful
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /pictures/{cat}:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
-    get:
-      tags: ["Cat pictures"]
-      operationId: getCatFromPicture
-      summary: Example of a parameter in URL
-      description: |-
-        Example of a parameter in URL
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Student picture found
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-              example: Picture binary file
-        "404":
-          description: Student picture not found
-        "500": { $ref: "#/components/responses/InternalServerError" }
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Invalid username
 
 
-  /autofeeder/{cat}:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
+  /users/me/name:
     put:
-      tags: ["Autofeeder"]
-      operationId: createCatAutofeeder
-      summary: Example of PUT operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed enabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    delete:
-      tags: ["Autofeeder"]
-      operationId: deleteCatAutofeeder
-      summary: Example of DELETE operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed disabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /session/login:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    post:
-      tags: ["Session management"]
-      operationId: login
-      summary: Log-in into system
-      description: |-
-        Perform a log-in action using username and password credentials.
-        Returns a token which can be used in authenticated requests.
+      tags:
+        - users
+      summary: Change my username
+      description: 
+        update the authenticated user name.
+        the new name must not be taken by another user.
+      operationId: setMyUserName
       requestBody:
+        description: New username
+        required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
-              type: object
-              properties:
-                userid:
-                  type: string
-                  pattern: '^[a-zA-Z0-9]+$'
-                  minLength: 3
-                  maxLength: 255
-                password:
-                  type: string
-                  pattern: '^.*?$'
-                  minLength: 8
-                  maxLength: 255
+              $ref: "#/components/schemas/SetUserNameRequest"
       responses:
         "200":
-          description: Login successful
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "403":
-          description: Login failed
-          headers:
-            X-Message:
-              description: Error message
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          description: Username updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid username
+        "409":
+          description: Username already in use
 
+  /users/me/photo:
+    put:
+      tags:
+        - users
+      summary: Change my profile photo
+      description: 
+        set a new profile photo. the file must  be already uploaded
+        via createUpload. 
+      operationId: setMyPhoto
+      requestBody: # differenza con wasaText
+        description: New profile photo file ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPhotoRequest"
+      responses:
+        "200":
+          description: Photo updated
+        "400":
+          description: invalid photo or file not found
+        "401":
+          description: No authorization
+
+  /uploads:
+    post:
+      tags:
+        - uploads
+      summary: Get a presigned upload URL
+      description: #ulteriore differenza con wastext
+        ask for permission to upload a file. return a file ID and a
+        S3 URL. The frontend uploads the file directly to S3.
+        The URL has the declared size, and files larger than
+        the 100 Mb are rejected.
+      operationId: createUpload
+      requestBody:
+        description: File info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileUploadRequest"
+      responses:
+        "201":
+          description: Upload URL created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadResponse"
+        "400":
+          description: invalid request or file too large
+        "401":
+          description: No authorization
+
+  /files/{fileId}:
+    parameters:
+      - name: fileId
+        in: path
+        required: true
+        description: File ID
+        schema:
+          type: string
+    get:
+      tags:
+        - files
+      summary: Get a presigned download URL
+      description: 
+        Returns a presigned URL to download the file.
+        The user must be allowed to see the file.
+      operationId: getFile
+      responses:
+        "200":
+          description: Download URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDownloadResponse"
+        "401":
+          description: No authorization
+        "404":
+          description: File not found
+
+  /conversations:
+    get:
+      tags:
+        - conversations
+      summary: List my conversations
+      description: 
+        returns the user conversations in reverse chronological order.
+        each item shows the name/photo, last message time, and a preview.
+      operationId: getMyConversations
+      responses:
+        "200":
+          description: List of conversation summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationSummary"
+        "401":
+          description: No authorization
+    post:
+      tags:
+        - conversations
+      summary: Start a direct conversation
+      description: 
+        Start a conversation with another user.
+      operationId: createConversation
+      requestBody:
+        description: Other user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "400":
+          description: Invalid request
+        "401":
+          description: No authorization
+        "404":
+          description: User not found
+
+  /conversations/{conversationId}:
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        description: Conversation ID
+        schema:
+          type: string
+    get:
+      tags:
+        - conversations
+      summary: Get conversation details
+      description: 
+        returns all messages in reverse chronological order.
+        Each message includes timestamp, content, sender, status, and reactions.
+      operationId: getConversation
+      responses:
+        "200":
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "401":
+          description: No authorization
+        "404":
+          description: Conversation not found
+
+  /conversations/{conversationId}/messages:
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        description: Conversation ID
+        schema:
+          type: string
+    post:
+      tags:
+        - messages
+      summary: Send a message
+      description: 
+        send a text, photo, or file message. For photo/file, the file must
+        already be uploaded via createUpload. Use replyToMessageId to reply.
+      operationId: sendMessage
+      requestBody:
+        description: Message to send
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid message or file not found
+        "401":
+          description: No authorization
+        "404":
+          description: Conversation or replied message not found
+
+  /messages/{messageId}/forward:
+    parameters:
+      - name: messageId
+        in: path
+        required: true
+        description: Message ID to forward
+        schema:
+          type: string
+    post:
+      tags:
+        - messages
+      summary: Forward a message
+      description:  #i file sono "puntati" e non copiati
+        Forward a message to another conversation. Files are not copied!!
+        the new message points to the same file ID.
+      operationId: forwardMessage
+      requestBody:
+        description: Destination conversation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForwardMessageRequest"
+      responses:
+        "201":
+          description: Message forwarded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid request
+        "401":
+          description: No authorization
+        "404":
+          description: msg or conversation not found
+
+  /messages/{messageId}/comments:
+    parameters:
+      - name: messageId
+        in: path
+        required: true
+        description: Message ID
+        schema:
+          type: string
+    post:
+      tags:
+        - reactions
+      summary: React to a message
+      description: 
+        add an emoji reaction to a message.
+      operationId: commentMessage
+      requestBody:
+        description: Reaction
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentMessageRequest"
+      responses:
+        "201":
+          description: Reaction added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+        "400":
+          description: Invalid reaction
+        "401":
+          description: No authorization
+        "404":
+          description: Message not found
+
+  /messages/{messageId}/comments/{commentId}:
+    parameters:
+      - name: messageId
+        in: path
+        required: true
+        description: Message ID
+        schema:
+          type: string
+      - name: commentId
+        in: path
+        required: true
+        description: Reaction ID
+        schema:
+          type: string
+    delete:
+      tags:
+        - reactions
+      summary: Remove a reaction
+      description: 
+        Delete one of the authenticated user's reactions.
+      operationId: uncommentMessage
+      responses:
+        "200":
+          description: Reaction removed
+        "401":
+          description: No authorization
+        "404":
+          description: Message or reaction not found
+
+  /messages/{messageId}:
+    parameters:
+      - name: messageId
+        in: path
+        required: true
+        description: Message ID
+        schema:
+          type: string
+    delete:
+      tags:
+        - messages
+      summary: Delete a sent message
+      description: 
+        Delete a message sent by the user.
+      operationId: deleteMessage
+      responses:
+        "200":
+          description: Message deleted
+        "401":
+          description: No authorization
+        "404":
+          description: Message not found
+
+  /groups:
+    post:
+      tags:
+        - groups
+      summary: Create a group
+      description: 
+        Create a new group with one or more other users.
+      operationId: createGroup
+      requestBody:
+        description: Group details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
+      responses:
+        "201":
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          description: Invalid group data
+        "401":
+          description: No authorization
+
+  /groups/{groupId}/members:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: Group ID
+        schema:
+          type: string
+    post:
+      tags:
+        - groups
+      summary: Add a user to a group
+      description: 
+        add another user to the group.
+      operationId: addToGroup
+      requestBody:
+        description: User to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToGroupRequest"
+      responses:
+        "200":
+          description: User added
+        "400":
+          description: Invalid request
+        "401":
+          description: No authorization
+        "404":
+          description: Group or user not found
+
+  /groups/{groupId}/members/me:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: Group ID
+        schema:
+          type: string
+    delete:
+      tags:
+        - groups
+      summary: Leave a group
+      description: 
+        Leave the group.
+      operationId: leaveGroup
+      responses:
+        "200":
+          description: Left group
+        "401":
+          description: No authorization
+        "404":
+          description: Group not found
+
+  /groups/{groupId}/name:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: Group ID
+        schema:
+          type: string
+    put:
+      tags:
+        - groups
+      summary: Change group name
+      description: 
+        Update the group name.
+      operationId: setGroupName
+      requestBody:
+        description: New name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetGroupNameRequest"
+      responses:
+        "200":
+          description: Name updated
+        "400":
+          description: Invalid name
+        "401":
+          description: No authorization
+        "404":
+          description: Group not found
+
+  /groups/{groupId}/photo:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: Group ID
+        schema:
+          type: string
+    put:
+      tags:
+        - groups
+      summary: Change group photo
+      description: 
+        Set a new group photo. The file must already be uploaded
+        via createUpload.
+      operationId: setGroupPhoto
+      requestBody:
+        description: New group photo file ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPhotoRequest"
+      responses:
+        "200":
+          description: Photo updated
+        "400":
+          description: invalid photo or file not found
+        "401":
+          description: No authorization
+        "404":
+          description: Group not found
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Use the id from doLogin as the Bearer token.
   schemas:
-    StatusInfo:
-      title: Status Info
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-            - info
-            - warning
-            - critical
-            - ""
-        title: { type: string }
-        message: { type: string }
-        url: { type: string }
-
-    NameInfo:
-      title: Name Info
+    LoginRequest:
       type: object
       required:
         - name
       properties:
         name:
           type: string
-          example: Jerry
+          example: GiovanniGiorgio
+          pattern: '^.*?$'
+          minLength: 3
+          maxLength: 16
 
-  responses:
-    Unauthorized:
-      description: The access token is missing or it's expired
-    BadRequest:
-      description: The request was not compliant with the documentation (eg. missing fields, etc)
-    InternalServerError:
-      description: The server encountered an internal error. Further info in server logs
+    LoginResponse:
+      type: object
+      properties:
+        identifier:
+          type: string
+          example: "21321231"
 
-  securitySchemes:
-    LegacyAuth:
-      type: apiKey
-      in: header
-      name: X-App-Token
-      description: |-
-        App session token value. This value is sent by the server in the login
-        and session refresh APIs.
+    User:
+      type: object
+      properties:
+        identifier:
+          type: string
+          example: "asdsadsad"
+        name:
+          type: string
+          example: Kafka
+        photoUrl:
+          type: string
+          nullable: true
+          description: Presigned URL for the profile photo.
+          example: "https://x.com/bucket/asdsad-"
+  # i file sono divisi in bucket
+    SetUserNameRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 16
+          example: Sas
 
-  parameters:
-    XAppVersion:
-      schema:
-        type: string
-        pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
-        minLength: 1
-        maxLength: 10
-      name: X-App-Version
-      in: header
-      required: true
-      description: App human readable version ("semantic version" format)
-      allowEmptyValue: false
-    XAppBuild:
-      schema: { type: integer }
-      name: X-App-Build
-      in: header
-      required: true
-      description: App build number
-      allowEmptyValue: false
-    XAppLanguage:
-      schema:
-        type: string
-        pattern: '^[a-z]{2}([-_][A-Z]{2})?$'
-        minLength: 2
-        maxLength: 5
-      name: X-App-Language
-      in: header
-      required: true
-      description: App language in ISO 639-1 format
-      allowEmptyValue: false
-    XAppPlatform:
-      schema:
-        type: string
-        enum: [ios, android]
-      name: X-App-Platform
-      in: header
-      required: true
-      description: App operating system / platform
-      allowEmptyValue: false
-    cat:
-      schema:
-        type: string
-        pattern: '^[a-zA-Z]+$'
-        minLength: 3
-        maxLength: 10
-      name: cat
-      in: path
-      required: true
-      description: Cat
-      allowEmptyValue: false
+    SetPhotoRequest:
+      type: object
+      required:
+        - fileId
+      properties:
+        fileId:
+          type: string
+          description: File ID from createUpload. Must exist in S3.
+
+    FileUploadRequest:
+      type: object
+      required:
+        - fileName
+        - contentType
+        - size
+      properties:
+        fileName:
+          type: string
+          example: "report.pdf"
+        contentType:
+          type: string
+          example: "application/pdf"
+        size:
+          type: integer
+          format: int64
+          description: size in bytes. Must not exceed 100mb.
+          example: 1048576
+    # 100mb
+    FileUploadResponse:
+      type: object
+      properties:
+        fileId:
+          type: string
+          example: "3f2-cd12"
+        uploadUrl:
+          type: string
+          description: Presigned S3 PUT URL. Signed with the declared size.
+          example: "https://s3.com/bucket/das-as."
+
+    FileDownloadResponse:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+          description: Short-lived presigned S3 GET URL.
+          example: "https://s3.com/bucket/dssd1-a23s."
+
+    FileMetadata:
+      type: object
+      properties:
+        fileId:
+          type: string
+        fileName:
+          type: string
+          example: "report.pdf"
+        contentType:
+          type: string
+          example: "application/pdf"
+        size:
+          type: integer
+          format: int64
+          example: 321213
+        downloadUrl:
+          type: string
+          nullable: true
+          description: presigned download URL, if user is allowed.
+          example: "https://s3.com/bucket/dssd1-a23s."
+
+    CreateConversationRequest:
+      type: object
+      required:
+        - otherUserIdentifier
+      properties:
+        otherUserIdentifier:
+          type: string
+          example: "sdasdasadas"
+
+    ConversationSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - direct
+            - group
+        name:
+          type: string
+          description: username for direct, group name for groups.
+        photoUrl:
+          type: string
+          nullable: true
+          description: Presigned URL for the conversation photo.
+        lastMessageAt:
+          type: string
+          format: date-time
+        lastMessagePreview:
+          type: string
+          description: Text snippet for text messages, empty for photo/file.
+        lastMessageType:
+          type: string
+          enum:
+            - text
+            - photo
+            - file
+
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - direct
+            - group
+        name:
+          type: string
+        photoUrl:
+          type: string
+          nullable: true
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        sender:
+          $ref: "#/components/schemas/User"
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum:
+            - text
+            - photo
+            - file
+        content:
+          type: string
+          nullable: true
+          description: Text for text messages. 
+        file:
+          $ref: "#/components/schemas/FileMetadata"
+        replyToMessageId:
+          type: string
+          nullable: true
+        forwardedFromMessageId:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - sent
+            - delivered
+            - read
+          description: ##
+            sent = one check, delivered = two checks, read = two blue checks.
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reaction"
+
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: string
+        messageId:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+        emoji:
+          type: string
+          example: "👍" # levati i codici Unicode (tanto sono poco utili)
+
+    SendMessageRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - text
+            - photo
+            - file
+        content:
+          type: string
+          nullable: true
+          description:  required for text. optional caption for photo/file.
+        fileId:
+          type: string
+          description: Required for photo/file. Must exist in S3.
+        replyToMessageId:
+          type: string
+          nullable: true
+
+    ForwardMessageRequest:
+      type: object
+      required:
+        - targetConversationId
+      properties:
+        targetConversationId:
+          type: string
+
+    CommentMessageRequest:
+      type: object
+      required:
+        - emoji
+      properties:
+        emoji:
+          type: string
+          example: "❤️" ###
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+        - memberIdentifiers
+      properties:
+        name:
+          type: string
+        memberIdentifiers:
+          type: array
+          items:
+            type: string
+
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        photoUrl:
+          type: string
+          nullable: true
+          description: presigned URL for the group photo.
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+
+    AddToGroupRequest:
+      type: object
+      required:
+        - identifier
+      properties:
+        identifier:
+          type: string
+          description: User ID to add.
+
+    SetGroupNameRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
