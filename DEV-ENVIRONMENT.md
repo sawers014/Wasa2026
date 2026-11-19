@@ -6,6 +6,10 @@ can use:
 * **PostgreSQL**, if you use it instead of SQLite (see "Choosing a database" in `README.md`);
 * **Garage**, an S3-compatible object storage, if your project stores files (see "Object storage" in `README.md`).
 
+You do not need Docker, PostgreSQL, or Garage just to run the API: from the repository root, `go run ./cmd/webapi/`
+starts it with the default SQLite database and object storage disabled. Use the instructions below only if you want
+to develop with PostgreSQL or file storage. The project requires Go 1.26 or newer.
+
 | File | What it is |
 |---|---|
 | `demo/docker-compose.yml` | Describes the containers: PostgreSQL and Garage |

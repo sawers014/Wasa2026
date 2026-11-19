@@ -24,7 +24,7 @@ services:
     ports:
       # "<port on your computer>:<port in the container>". Change the first number if 5432 is already in use on your
       # computer (for example, by a PostgreSQL installed on it), and update dsn in demo/config.yml accordingly.
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:

@@ -476,10 +476,19 @@ go build -tags webui ./cmd/webapi/
 
 ## How to run (in development mode)
 
-You can launch the backend only using:
+Use Go 1.26 or newer, and run the command from the repository root (the directory containing `go.mod`). The API
+executable is in `cmd/webapi/`, so run the package rather than `main.go` directly. This starts the backend with the
+default SQLite database (`/tmp/decaf.db`) and no object storage; Docker is not required:
 
 ```shell
 go run ./cmd/webapi/
+```
+
+To use PostgreSQL or Garage instead, start and configure those services as described in `DEV-ENVIRONMENT.md`, then
+pass the configuration file:
+
+```shell
+go run ./cmd/webapi/ --config-path demo/config.yml
 ```
 
 If you want to launch the WebUI, open a new tab and launch:

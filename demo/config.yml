@@ -22,15 +22,15 @@
 #  shutdowntimeout: 5s
 
 # The database. The default is SQLite, in the file /tmp/decaf.db; to use PostgreSQL, uncomment driver and dsn.
-#db:
-#  driver: postgres
-#  dsn: postgres://decaf:decaf@localhost:5432/decaf?sslmode=disable
+db:
+  driver: postgres
+  dsn: postgres://decaf:decaf@localhost:5433/decaf?sslmode=disable
 #  filename: /tmp/decaf.db      # SQLite only
 
 # The object storage. It is enabled only when endpoint is set: then all the other values are required (see DEV-ENVIRONMENT.md, step 5).
-#s3:
-#  endpoint: http://localhost:3900
-#  region: garage
-#  bucket: decaf
-#  accesskeyid: <key ID>
-#  secretaccesskey: <secret key>
+s3:
+  endpoint: http://localhost:3900
+  region: garage
+  bucket: decaf
+  accesskeyid: GK9f2a10c9c54d76ea74857722
+  secretaccesskey: bf69c33dc7572468f460298ab665132d998311ab3955ef9130252499184aa08c

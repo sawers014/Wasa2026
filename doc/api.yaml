@@ -5,6 +5,23 @@ info:
     API for WASATextPlus. users can log in, chat, send text/photo/file
     messages, react, create groups, and upload files with S3 URLs.
   version: "1.0"
+tags:
+  - name: login
+    description: Login and registration.
+  - name: users
+    description: Manage the authenticated user's profile.
+  - name: uploads
+    description: Request file upload URLs.
+  - name: files
+    description: Retrieve file download URLs.
+  - name: conversations
+    description: Create and retrieve conversations.
+  - name: messages
+    description: Send, forward, and delete messages.
+  - name: reactions
+    description: Add and remove message reactions.
+  - name: groups
+    description: Create and manage groups.
 security:
   - bearerAuth: [] #security rimane costante con wasatext
 paths:
@@ -81,7 +98,7 @@ paths:
             schema:
               $ref: "#/components/schemas/SetPhotoRequest"
       responses:
-        "200":
+        "204":
           description: Photo updated
         "400":
           description: invalid photo or file not found
@@ -126,6 +143,10 @@ paths:
         description: File ID
         schema:
           type: string
+          description: Unique file identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     get:
       tags:
         - files
@@ -162,6 +183,9 @@ paths:
             application/json:
               schema:
                 type: array
+                description: Conversations ordered from newest to oldest activity.
+                minItems: 0
+                maxItems: 1000
                 items:
                   $ref: "#/components/schemas/ConversationSummary"
         "401":
@@ -202,6 +226,10 @@ paths:
         description: Conversation ID
         schema:
           type: string
+          description: Unique conversation identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     get:
       tags:
         - conversations
@@ -230,6 +258,10 @@ paths:
         description: Conversation ID
         schema:
           type: string
+          description: Unique conversation identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     post:
       tags:
         - messages
@@ -267,6 +299,10 @@ paths:
         description: Message ID to forward
         schema:
           type: string
+          description: Unique message identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     post:
       tags:
         - messages
@@ -304,6 +340,10 @@ paths:
         description: Message ID
         schema:
           type: string
+          description: Unique message identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     post:
       tags:
         - reactions
@@ -340,12 +380,20 @@ paths:
         description: Message ID
         schema:
           type: string
+          description: Unique message identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
       - name: commentId
         in: path
         required: true
         description: Reaction ID
         schema:
           type: string
+          description: Unique reaction identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     delete:
       tags:
         - reactions
@@ -354,7 +402,7 @@ paths:
         Delete one of the authenticated user's reactions.
       operationId: uncommentMessage
       responses:
-        "200":
+        "204":
           description: Reaction removed
         "401":
           description: No authorization
@@ -369,6 +417,10 @@ paths:
         description: Message ID
         schema:
           type: string
+          description: Unique message identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     delete:
       tags:
         - messages
@@ -377,7 +429,7 @@ paths:
         Delete a message sent by the user.
       operationId: deleteMessage
       responses:
-        "200":
+        "204":
           description: Message deleted
         "401":
           description: No authorization
@@ -419,6 +471,10 @@ paths:
         description: Group ID
         schema:
           type: string
+          description: Unique group identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     post:
       tags:
         - groups
@@ -434,7 +490,7 @@ paths:
             schema:
               $ref: "#/components/schemas/AddToGroupRequest"
       responses:
-        "200":
+        "204":
           description: User added
         "400":
           description: Invalid request
@@ -451,6 +507,10 @@ paths:
         description: Group ID
         schema:
           type: string
+          description: Unique group identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     delete:
       tags:
         - groups
@@ -459,7 +519,7 @@ paths:
         Leave the group.
       operationId: leaveGroup
       responses:
-        "200":
+        "204":
           description: Left group
         "401":
           description: No authorization
@@ -474,6 +534,10 @@ paths:
         description: Group ID
         schema:
           type: string
+          description: Unique group identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     put:
       tags:
         - groups
@@ -489,7 +553,7 @@ paths:
             schema:
               $ref: "#/components/schemas/SetGroupNameRequest"
       responses:
-        "200":
+        "204":
           description: Name updated
         "400":
           description: Invalid name
@@ -506,6 +570,10 @@ paths:
         description: Group ID
         schema:
           type: string
+          description: Unique group identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
     put:
       tags:
         - groups
@@ -522,7 +590,7 @@ paths:
             schema:
               $ref: "#/components/schemas/SetPhotoRequest"
       responses:
-        "200":
+        "204":
           description: Photo updated
         "400":
           description: invalid photo or file not found
@@ -540,60 +608,86 @@ components:
   schemas:
     LoginRequest:
       type: object
+      description: Credentials used to log in or create an account.
       required:
         - name
       properties:
         name:
           type: string
+          description: Username to authenticate or register.
           example: GiovanniGiorgio
-          pattern: '^.*?$'
+          pattern: '^.{3,16}$'
           minLength: 3
           maxLength: 16
 
     LoginResponse:
       type: object
+      description: Identifier to use as the bearer token.
       properties:
         identifier:
           type: string
+          description: Unique user identifier and authentication token.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
           example: "21321231"
 
     User:
       type: object
+      description: Public profile information for a user.
       properties:
         identifier:
           type: string
+          description: Unique user identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
           example: "asdsadsad"
         name:
           type: string
+          description: Username.
+          pattern: '^.{3,16}$'
+          minLength: 3
+          maxLength: 16
           example: Kafka
         photoUrl:
           type: string
-          nullable: true
           description: Presigned URL for the profile photo.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
           example: "https://x.com/bucket/asdsad-"
   # i file sono divisi in bucket
     SetUserNameRequest:
       type: object
+      description: Request to change the authenticated user's username.
       required:
         - name
       properties:
         name:
           type: string
+          description: New username.
+          pattern: '^.{3,16}$'
           minLength: 3
           maxLength: 16
           example: Sas
 
     SetPhotoRequest:
       type: object
+      description: Request to set a profile or group photo.
       required:
         - fileId
       properties:
         fileId:
           type: string
           description: File ID from createUpload. Must exist in S3.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
 
     FileUploadRequest:
       type: object
+      description: File metadata used to request a presigned upload URL.
       required:
         - fileName
         - contentType
@@ -601,90 +695,160 @@ components:
       properties:
         fileName:
           type: string
+          description: Name of the file being uploaded.
+          pattern: '^.{1,255}$'
+          minLength: 1
+          maxLength: 255
           example: "report.pdf"
         contentType:
           type: string
+          description: MIME type of the file being uploaded.
+          pattern: '^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$'
+          minLength: 3
+          maxLength: 127
           example: "application/pdf"
         size:
           type: integer
           format: int64
           description: size in bytes. Must not exceed 100mb.
+          minimum: 1
+          maximum: 104857600
           example: 1048576
     # 100mb
     FileUploadResponse:
       type: object
+      description: File identifier and presigned URL used for uploading.
       properties:
         fileId:
           type: string
+          description: Identifier assigned to the uploaded file.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
           example: "3f2-cd12"
         uploadUrl:
           type: string
           description: Presigned S3 PUT URL. Signed with the declared size.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
           example: "https://s3.com/bucket/das-as."
 
     FileDownloadResponse:
       type: object
+      description: Presigned URL used to download a file.
       properties:
         downloadUrl:
           type: string
           description: Short-lived presigned S3 GET URL.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
           example: "https://s3.com/bucket/dssd1-a23s."
 
     FileMetadata:
       type: object
+      description: Metadata associated with an uploaded file.
       properties:
         fileId:
           type: string
+          description: Unique file identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         fileName:
           type: string
+          description: Original name of the file.
+          pattern: '^.{1,255}$'
+          minLength: 1
+          maxLength: 255
           example: "report.pdf"
         contentType:
           type: string
+          description: MIME type of the file.
+          pattern: '^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$'
+          minLength: 3
+          maxLength: 127
           example: "application/pdf"
         size:
           type: integer
           format: int64
+          description: File size in bytes.
+          minimum: 1
+          maximum: 104857600
           example: 321213
         downloadUrl:
           type: string
-          nullable: true
           description: presigned download URL, if user is allowed.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
           example: "https://s3.com/bucket/dssd1-a23s."
 
     CreateConversationRequest:
       type: object
+      description: Request to start a direct conversation.
       required:
         - otherUserIdentifier
       properties:
         otherUserIdentifier:
           type: string
+          description: Identifier of the other participant.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
           example: "sdasdasadas"
 
     ConversationSummary:
       type: object
+      description: Conversation details and a preview of its latest message.
       properties:
         id:
           type: string
+          description: Unique conversation identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         type:
           type: string
+          description: Whether this is a direct or group conversation.
+          pattern: '^(direct|group)$'
+          minLength: 5
+          maxLength: 6
           enum:
             - direct
             - group
         name:
           type: string
           description: username for direct, group name for groups.
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         photoUrl:
           type: string
-          nullable: true
           description: Presigned URL for the conversation photo.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
         lastMessageAt:
           type: string
+          description: Timestamp of the latest message.
           format: date-time
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         lastMessagePreview:
           type: string
           description: Text snippet for text messages, empty for photo/file.
+          pattern: '^[\s\S]{0,256}$'
+          minLength: 0
+          maxLength: 256
         lastMessageType:
           type: string
+          description: Type of the latest message.
+          pattern: '^(text|photo|file)$'
+          minLength: 4
+          maxLength: 5
           enum:
             - text
             - photo
@@ -693,165 +857,291 @@ components:
 
     Conversation:
       type: object
+      description: Full conversation details, including participants and messages.
       properties:
         id:
           type: string
+          description: Unique conversation identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         type:
           type: string
+          description: Whether this is a direct or group conversation.
+          pattern: '^(direct|group)$'
+          minLength: 5
+          maxLength: 6
           enum:
             - direct
             - group
         name:
           type: string
+          description: Username for direct conversations or group name.
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         photoUrl:
           type: string
-          nullable: true
+          description: Presigned URL for the conversation photo.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
         members:
           type: array
+          description: Users who are members of the conversation.
+          minItems: 0
+          maxItems: 100
           items:
             $ref: "#/components/schemas/User"
         messages:
           type: array
+          description: Messages in the conversation.
+          minItems: 0
+          maxItems: 1000
           items:
             $ref: "#/components/schemas/Message"
     Message:
       type: object
+      description: A message in a conversation.
       properties:
         id:
           type: string
+          description: Unique message identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         conversationId:
           type: string
+          description: Identifier of the conversation containing this message.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         sender:
+          description: User who sent the message.
           $ref: "#/components/schemas/User"
         timestamp:
           type: string
+          description: Time the message was sent.
           format: date-time
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         type:
           type: string
+          description: Message content type.
+          pattern: '^(text|photo|file)$'
+          minLength: 4
+          maxLength: 5
           enum:
             - text
             - photo
             - file
         content:
           type: string
-          nullable: true
           description: Text for text messages. 
+          pattern: '^[\s\S]{0,4096}$'
+          minLength: 0
+          maxLength: 4096
         file:
+          description: File metadata for photo or file messages.
           $ref: "#/components/schemas/FileMetadata"
         replyToMessageId:
           type: string
-          nullable: true
+          description: Identifier of the message being replied to, when applicable.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         forwardedFromMessageId:
           type: string
-          nullable: true
+          description: Identifier of the original message, when this message was forwarded.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         status:
           type: string
+          description: Delivery status of the message.
+          pattern: '^(sent|delivered|read)$'
+          minLength: 4
+          maxLength: 9
           enum:
             - sent
             - delivered
             - read
-          description: ##
-            sent = one check, delivered = two checks, read = two blue checks.
         reactions:
           type: array
+          description: Reactions added to the message.
+          minItems: 0
+          maxItems: 1000
           items:
             $ref: "#/components/schemas/Reaction"
 
     Reaction:
       type: object
+      description: An emoji reaction to a message.
       properties:
         id:
           type: string
+          description: Unique reaction identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         messageId:
           type: string
+          description: Identifier of the message being reacted to.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         user:
+          description: User who added the reaction.
           $ref: "#/components/schemas/User"
         emoji:
           type: string
+          description: Emoji used for the reaction.
+          pattern: '^.{1,16}$'
+          minLength: 1
+          maxLength: 16
           example: "👍" # levati i codici Unicode (tanto sono poco utili)
 
     SendMessageRequest:
       type: object
+      description: Request to send a text, photo, or file message.
       required:
         - type
       properties:
         type:
           type: string
+          description: Type of message to send.
+          pattern: '^(text|photo|file)$'
+          minLength: 4
+          maxLength: 5
           enum:
             - text
             - photo
             - file
         content:
           type: string
-          nullable: true
           description:  required for text. optional caption for photo/file.
+          pattern: '^[\s\S]{0,4096}$'
+          minLength: 0
+          maxLength: 4096
         fileId:
           type: string
           description: Required for photo/file. Must exist in S3.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         replyToMessageId:
           type: string
-          nullable: true
+          description: Identifier of the message being replied to, when applicable.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
 
     ForwardMessageRequest:
       type: object
+      description: Request to forward a message to another conversation.
       required:
         - targetConversationId
       properties:
         targetConversationId:
           type: string
+          description: Identifier of the destination conversation.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
 
     CommentMessageRequest:
       type: object
+      description: Request to add an emoji reaction to a message.
       required:
         - emoji
       properties:
         emoji:
           type: string
+          description: Emoji to add as a reaction.
+          pattern: '^.{1,16}$'
+          minLength: 1
+          maxLength: 16
           example: "❤️" ###
 
     CreateGroupRequest:
       type: object
+      description: Request to create a group with its initial members.
       required:
         - name
         - memberIdentifiers
       properties:
         name:
           type: string
+          description: Name of the new group.
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         memberIdentifiers:
           type: array
+          description: Identifiers of the users to add to the group.
+          minItems: 1
+          maxItems: 100
           items:
             type: string
+            description: Identifier of a user to add.
+            pattern: '^.{1,128}$'
+            minLength: 1
+            maxLength: 128
 
 
     Group:
       type: object
+      description: Group conversation and its members.
       properties:
         id:
           type: string
+          description: Unique group identifier.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
         name:
           type: string
+          description: Name of the group.
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
         photoUrl:
           type: string
-          nullable: true
           description: presigned URL for the group photo.
+          pattern: '^https?://.+$'
+          minLength: 9
+          maxLength: 4096
         members:
           type: array
+          description: Users who are members of the group.
+          minItems: 1
+          maxItems: 100
           items:
             $ref: "#/components/schemas/User"
 
     AddToGroupRequest:
       type: object
+      description: Request to add a user to a group.
       required:
         - identifier
       properties:
         identifier:
           type: string
           description: User ID to add.
+          pattern: '^.{1,128}$'
+          minLength: 1
+          maxLength: 128
 
     SetGroupNameRequest:
       type: object
+      description: Request to change a group's name.
       required:
         - name
       properties:
         name:
           type: string
+          description: New group name.
+          pattern: '^.{1,64}$'
+          minLength: 1
+          maxLength: 64
