@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: WASATextPlus API
-  description: 
+  description:
     API for WASATextPlus. users can log in, chat, send text/photo/file
     messages, react, create groups, and upload files with S3 URLs.
   version: "1.0"
@@ -30,7 +30,7 @@ paths:
       tags:
         - login
       summary: Log in or register
-      description: 
+      description:
         if username exists, log in. otherwise create the user.
         return an id that is the Bearer token.
       operationId: doLogin
@@ -51,14 +51,17 @@ paths:
                 $ref: "#/components/schemas/LoginResponse"
         "400":
           description: Invalid username
-
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /users/me/name:
     put:
       tags:
         - users
       summary: Change my username
-      description: 
+      description:
         update the authenticated user name.
         the new name must not be taken by another user.
       operationId: setMyUserName
@@ -78,17 +81,31 @@ paths:
                 $ref: "#/components/schemas/User"
         "400":
           description: Invalid username
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Username already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /users/me/photo:
     put:
       tags:
         - users
       summary: Change my profile photo
-      description: 
-        set a new profile photo. the file must  be already uploaded
-        via createUpload. 
+      description:
+        set a new profile photo. the file must be already uploaded
+        via createUpload.
       operationId: setMyPhoto
       requestBody: # differenza con wasaText
         description: New profile photo file ID
@@ -102,8 +119,16 @@ paths:
           description: Photo updated
         "400":
           description: invalid photo or file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /uploads:
     post:
@@ -132,8 +157,16 @@ paths:
                 $ref: "#/components/schemas/FileUploadResponse"
         "400":
           description: invalid request or file too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /files/{fileId}:
     parameters:
@@ -144,14 +177,14 @@ paths:
         schema:
           type: string
           description: Unique file identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     get:
       tags:
         - files
       summary: Get a presigned download URL
-      description: 
+      description:
         Returns a presigned URL to download the file.
         The user must be allowed to see the file.
       operationId: getFile
@@ -164,15 +197,23 @@ paths:
                 $ref: "#/components/schemas/FileDownloadResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /conversations:
     get:
       tags:
         - conversations
       summary: List my conversations
-      description: 
+      description:
         returns the user conversations in reverse chronological order.
         each item shows the name/photo, last message time, and a preview.
       operationId: getMyConversations
@@ -190,11 +231,15 @@ paths:
                   $ref: "#/components/schemas/ConversationSummary"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       tags:
         - conversations
       summary: Start a direct conversation
-      description: 
+      description:
         Start a conversation with another user.
       operationId: createConversation
       requestBody:
@@ -213,10 +258,22 @@ paths:
                 $ref: "#/components/schemas/Conversation"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /conversations/{conversationId}:
     parameters:
@@ -227,14 +284,14 @@ paths:
         schema:
           type: string
           description: Unique conversation identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     get:
       tags:
         - conversations
       summary: Get conversation details
-      description: 
+      description:
         returns all messages in reverse chronological order.
         Each message includes timestamp, content, sender, status, and reactions.
       operationId: getConversation
@@ -247,8 +304,16 @@ paths:
                 $ref: "#/components/schemas/Conversation"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /conversations/{conversationId}/messages:
     parameters:
@@ -259,14 +324,14 @@ paths:
         schema:
           type: string
           description: Unique conversation identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     post:
       tags:
         - messages
       summary: Send a message
-      description: 
+      description:
         send a text, photo, or file message. For photo/file, the file must
         already be uploaded via createUpload. Use replyToMessageId to reply.
       operationId: sendMessage
@@ -286,10 +351,22 @@ paths:
                 $ref: "#/components/schemas/Message"
         "400":
           description: Invalid message or file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Conversation or replied message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /messages/{messageId}/forward:
     parameters:
@@ -300,7 +377,7 @@ paths:
         schema:
           type: string
           description: Unique message identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     post:
@@ -327,10 +404,22 @@ paths:
                 $ref: "#/components/schemas/Message"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: msg or conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /messages/{messageId}/comments:
     parameters:
@@ -341,14 +430,14 @@ paths:
         schema:
           type: string
           description: Unique message identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     post:
       tags:
         - reactions
       summary: React to a message
-      description: 
+      description:
         add an emoji reaction to a message.
       operationId: commentMessage
       requestBody:
@@ -367,10 +456,22 @@ paths:
                 $ref: "#/components/schemas/Reaction"
         "400":
           description: Invalid reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /messages/{messageId}/comments/{commentId}:
     parameters:
@@ -381,7 +482,7 @@ paths:
         schema:
           type: string
           description: Unique message identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
       - name: commentId
@@ -391,14 +492,14 @@ paths:
         schema:
           type: string
           description: Unique reaction identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     delete:
       tags:
         - reactions
       summary: Remove a reaction
-      description: 
+      description:
         Delete one of the authenticated user's reactions.
       operationId: uncommentMessage
       responses:
@@ -406,8 +507,16 @@ paths:
           description: Reaction removed
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Message or reaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /messages/{messageId}:
     parameters:
@@ -418,14 +527,14 @@ paths:
         schema:
           type: string
           description: Unique message identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     delete:
       tags:
         - messages
       summary: Delete a sent message
-      description: 
+      description:
         Delete a message sent by the user.
       operationId: deleteMessage
       responses:
@@ -433,15 +542,23 @@ paths:
           description: Message deleted
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /groups:
     post:
       tags:
         - groups
       summary: Create a group
-      description: 
+      description:
         Create a new group with one or more other users.
       operationId: createGroup
       requestBody:
@@ -460,8 +577,16 @@ paths:
                 $ref: "#/components/schemas/Group"
         "400":
           description: Invalid group data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /groups/{groupId}/members:
     parameters:
@@ -472,14 +597,14 @@ paths:
         schema:
           type: string
           description: Unique group identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     post:
       tags:
         - groups
       summary: Add a user to a group
-      description: 
+      description:
         add another user to the group.
       operationId: addToGroup
       requestBody:
@@ -494,10 +619,22 @@ paths:
           description: User added
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /groups/{groupId}/members/me:
     parameters:
@@ -508,14 +645,14 @@ paths:
         schema:
           type: string
           description: Unique group identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     delete:
       tags:
         - groups
       summary: Leave a group
-      description: 
+      description:
         Leave the group.
       operationId: leaveGroup
       responses:
@@ -523,8 +660,16 @@ paths:
           description: Left group
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /groups/{groupId}/name:
     parameters:
@@ -535,14 +680,14 @@ paths:
         schema:
           type: string
           description: Unique group identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     put:
       tags:
         - groups
       summary: Change group name
-      description: 
+      description:
         Update the group name.
       operationId: setGroupName
       requestBody:
@@ -557,10 +702,22 @@ paths:
           description: Name updated
         "400":
           description: Invalid name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /groups/{groupId}/photo:
     parameters:
@@ -571,14 +728,14 @@ paths:
         schema:
           type: string
           description: Unique group identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
     put:
       tags:
         - groups
       summary: Change group photo
-      description: 
+      description:
         Set a new group photo. The file must already be uploaded
         via createUpload.
       operationId: setGroupPhoto
@@ -594,10 +751,22 @@ paths:
           description: Photo updated
         "400":
           description: invalid photo or file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: No authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   securitySchemes:
@@ -606,6 +775,20 @@ components:
       scheme: bearer
       description: Use the id from doLogin as the Bearer token.
   schemas:
+    ErrorResponse:
+      type: object
+      description: Standard error payload returned when a request fails.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable explanation of the error.
+          pattern: '^.{1,512}$'
+          minLength: 1
+          maxLength: 512
+          example: "Invalid request payload"
+
     LoginRequest:
       type: object
       description: Credentials used to log in or create an account.
@@ -616,7 +799,7 @@ components:
           type: string
           description: Username to authenticate or register.
           example: GiovanniGiorgio
-          pattern: '^.{3,16}$'
+          pattern: '^[a-zA-Z0-9_-]{3,16}$'
           minLength: 3
           maxLength: 16
 
@@ -627,7 +810,7 @@ components:
         identifier:
           type: string
           description: Unique user identifier and authentication token.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
           example: "21321231"
@@ -639,25 +822,25 @@ components:
         identifier:
           type: string
           description: Unique user identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
           example: "asdsadsad"
         name:
           type: string
           description: Username.
-          pattern: '^.{3,16}$'
+          pattern: '^[a-zA-Z0-9_-]{3,16}$'
           minLength: 3
           maxLength: 16
           example: Kafka
         photoUrl:
           type: string
           description: Presigned URL for the profile photo.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
           example: "https://x.com/bucket/asdsad-"
-  # i file sono divisi in bucket
+    # i file sono divisi in bucket
     SetUserNameRequest:
       type: object
       description: Request to change the authenticated user's username.
@@ -667,7 +850,7 @@ components:
         name:
           type: string
           description: New username.
-          pattern: '^.{3,16}$'
+          pattern: '^[a-zA-Z0-9_-]{3,16}$'
           minLength: 3
           maxLength: 16
           example: Sas
@@ -681,7 +864,7 @@ components:
         fileId:
           type: string
           description: File ID from createUpload. Must exist in S3.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
 
@@ -722,14 +905,14 @@ components:
         fileId:
           type: string
           description: Identifier assigned to the uploaded file.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
           example: "3f2-cd12"
         uploadUrl:
           type: string
           description: Presigned S3 PUT URL. Signed with the declared size.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
           example: "https://s3.com/bucket/das-as."
@@ -741,7 +924,7 @@ components:
         downloadUrl:
           type: string
           description: Short-lived presigned S3 GET URL.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
           example: "https://s3.com/bucket/dssd1-a23s."
@@ -753,7 +936,7 @@ components:
         fileId:
           type: string
           description: Unique file identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         fileName:
@@ -780,7 +963,7 @@ components:
         downloadUrl:
           type: string
           description: presigned download URL, if user is allowed.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
           example: "https://s3.com/bucket/dssd1-a23s."
@@ -794,7 +977,7 @@ components:
         otherUserIdentifier:
           type: string
           description: Identifier of the other participant.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
           example: "sdasdasadas"
@@ -806,7 +989,7 @@ components:
         id:
           type: string
           description: Unique conversation identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         type:
@@ -827,15 +1010,15 @@ components:
         photoUrl:
           type: string
           description: Presigned URL for the conversation photo.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
         lastMessageAt:
           type: string
-          description: Timestamp of the latest message.
+          description: Timestamp of the latest message in ISO 8601 format.
           format: date-time
-          pattern: '^.{1,64}$'
-          minLength: 1
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$'
+          minLength: 20
           maxLength: 64
         lastMessagePreview:
           type: string
@@ -854,7 +1037,6 @@ components:
             - photo
             - file
 
-
     Conversation:
       type: object
       description: Full conversation details, including participants and messages.
@@ -862,7 +1044,7 @@ components:
         id:
           type: string
           description: Unique conversation identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         type:
@@ -883,7 +1065,7 @@ components:
         photoUrl:
           type: string
           description: Presigned URL for the conversation photo.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
         members:
@@ -900,6 +1082,7 @@ components:
           maxItems: 1000
           items:
             $ref: "#/components/schemas/Message"
+
     Message:
       type: object
       description: A message in a conversation.
@@ -907,24 +1090,23 @@ components:
         id:
           type: string
           description: Unique message identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         conversationId:
           type: string
           description: Identifier of the conversation containing this message.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         sender:
-          description: User who sent the message.
           $ref: "#/components/schemas/User"
         timestamp:
           type: string
-          description: Time the message was sent.
+          description: Time the message was sent in ISO 8601 format.
           format: date-time
-          pattern: '^.{1,64}$'
-          minLength: 1
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$'
+          minLength: 20
           maxLength: 64
         type:
           type: string
@@ -938,23 +1120,22 @@ components:
             - file
         content:
           type: string
-          description: Text for text messages. 
+          description: Text for text messages.
           pattern: '^[\s\S]{0,4096}$'
           minLength: 0
           maxLength: 4096
         file:
-          description: File metadata for photo or file messages.
           $ref: "#/components/schemas/FileMetadata"
         replyToMessageId:
           type: string
           description: Identifier of the message being replied to, when applicable.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         forwardedFromMessageId:
           type: string
           description: Identifier of the original message, when this message was forwarded.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         status:
@@ -982,17 +1163,16 @@ components:
         id:
           type: string
           description: Unique reaction identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         messageId:
           type: string
           description: Identifier of the message being reacted to.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         user:
-          description: User who added the reaction.
           $ref: "#/components/schemas/User"
         emoji:
           type: string
@@ -1020,20 +1200,20 @@ components:
             - file
         content:
           type: string
-          description:  required for text. optional caption for photo/file.
+          description: required for text. optional caption for photo/file.
           pattern: '^[\s\S]{0,4096}$'
           minLength: 0
           maxLength: 4096
         fileId:
           type: string
           description: Required for photo/file. Must exist in S3.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         replyToMessageId:
           type: string
           description: Identifier of the message being replied to, when applicable.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
 
@@ -1046,7 +1226,7 @@ components:
         targetConversationId:
           type: string
           description: Identifier of the destination conversation.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
 
@@ -1085,10 +1265,9 @@ components:
           items:
             type: string
             description: Identifier of a user to add.
-            pattern: '^.{1,128}$'
+            pattern: '^[A-Za-z0-9_-]{1,128}$'
             minLength: 1
             maxLength: 128
-
 
     Group:
       type: object
@@ -1097,7 +1276,7 @@ components:
         id:
           type: string
           description: Unique group identifier.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
         name:
@@ -1109,7 +1288,7 @@ components:
         photoUrl:
           type: string
           description: presigned URL for the group photo.
-          pattern: '^https?://.+$'
+          pattern: '^https?://[^\s/$.?#].[^\s]*$'
           minLength: 9
           maxLength: 4096
         members:
@@ -1129,7 +1308,7 @@ components:
         identifier:
           type: string
           description: User ID to add.
-          pattern: '^.{1,128}$'
+          pattern: '^[A-Za-z0-9_-]{1,128}$'
           minLength: 1
           maxLength: 128
 
